@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Form</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="navbar">
+    <div>Toko Komputer</div>
+    <h1><img src="logo.png" alt="" width="100px" height="100px"></h1>
+  </div>
+
+  <div id="app" class="container">
+
+    <div class="sejajar">
+      <div class="form-group">
+        <label>No. Nota:</label>
+        <input type="text" v-model="nota">
+      </div>
+
+      <div class="form-group">
+        <label>Pelanggan:</label>
+        <input type="text" v-model="pelanggan">
+      </div>
+
+      <div class="form-group date">
+        <label>Tanggal:</label>
+        <input type="date" v-model="tanggal">
+      </div>
+    </div>
+
+    <div class="summary">Total: {{ totalPembayaran.toFixed(2) }}</div>
+
+    <div class="sebaris">
+      <div class="anak">
+        <div class="form-group">
+          <label>Kode Barang:</label>
+          <select v-model="selectedItem">
+            <option v-for="item in items" :value="item">{{ item.nama }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nama Barang:</label>
+          <input type="text" v-model="selectedItem.nama" disabled>
+        </div>
+        <div class="form-group">
+          <label>Quantity:</label>
+          <input type="number" v-model.number="quantity" min="0">
+        </div>
+        <div class="form-group">
+          <button @click="addItem">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>ID Barang</th>
+          <th>Nama Barang</th>
+          <th>Harga Satuan</th>
+          <th>Qty</th>
+          <th>Jumlah</th>
+          <th>Opsi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(item, index) in invoiceItems" :key="index">
+          <td>{{ item.id }}</td>
+          <td>{{ item.nama }}</td>
+          <td>Rp. {{ item.harga.toFixed(2) }}</td>
+          <td>{{ item.qty }}</td>
+          <td>Rp. {{ (item.harga * item.qty).toFixed(2) }}</td>
+          <td><button @click="removeItem(index)">Hapus</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total">
+        <div>
+          <label>Sub Total: Rp.</label>
+          <span>{{ subTotal.toFixed(2) }}</span>
+        </div>
+        <div v-if="diskonAmount > 0">
+          <label>Diskon: Rp. {{ diskonAmount.toFixed(2) }} ({{ diskonPersen.toFixed(2) }}%)</label>
+        </div>
+        <div v-else>
+          <label>Diskon: Rp. 0.00 (0.00%)</label>
+        </div>
+        <div>
+          <label>Total Harga: Rp.</label>
+          <span>{{ totalHarga.toFixed(2) }}</span>
+        </div>
+          <div>
+            <label>Bayar: Rp.</label>
+            <input type="number" v-model.number="bayar" min="90000">
+          </div>
+        <div>
+            <label>kembalian</label>
+            <span>{{ kembalian.toFixed(2) }}</span>
+        </div>
+
+      </div>
+      
+
+    <div class="submit-button">
+      <button @click="completeTransaction">Selesai</button>
+    </div>
+  </div>
+
+  <script>
+    new Vue({
+  el: '#app',
+  data: {
+    nota: '',
+    pelanggan: '',
+    tanggal: '',
+    items: [
+      { id: '001', nama: 'Barang A', harga: 100000 },
+      { id: '002', nama: 'Barang B', harga: 200000 }
+    ],
+    selectedItem: { id: '', nama: '', harga: 0 },
+    quantity: 1,
+    invoiceItems: [],
+    diskon: 0,
+    bayar: 0
+  },
+  computed: {
+    subTotal() {
+      return this.invoiceItems.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+    },
+    diskonAmount() {
+      if (this.totalQuantity > 3) {
+        return this.subTotal * 0.2; // Diskon 20% jika jumlah barang lebih dari 3
+      } else {
+        return 0; // Tidak ada diskon jika jumlah barang kurang dari atau sama dengan 3
+      }
+    },
+    diskonPersen() {
+      return (this.diskonAmount / this.subTotal) * 100; // Menghitung diskon dalam persen
+    },
+    totalHarga() {
+      return this.subTotal - this.diskonAmount;
+    },
+    totalPembayaran() {
+      return this.totalHarga;
+    },
+    kembalian() {
+      return this.bayar - this.totalHarga;
+    },
+    totalQuantity() {
+      return this.invoiceItems.reduce((sum, item) => sum + item.qty, 0);
+    }
+  },
+  methods: {
+    addItem() {
+      if (this.selectedItem && this.quantity > 0) {
+        this.invoiceItems.push({ ...this.selectedItem, qty: this.quantity });
+        this.selectedItem = { id: '', nama: '', harga: 0 };
+        this.quantity = 1;
+      }
+    },
+    removeItem(index) {
+      this.invoiceItems.splice(index, 1);
+    },
+    completeTransaction() {
+      alert('Transaksi selesai!');
+      // Anda dapat menambahkan fungsionalitas lain di sini untuk menangani penyelesaian transaksi
+    }
+  }
+});
+  </script>
+</body>
+</html>
